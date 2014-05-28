@@ -29,9 +29,50 @@ class Topical {
 
 	function __construct() {
         // create a post type
+
         // create a taxonomy
+        add_action('init', array(&$this, 'create_taxonomy'), 10);
+
+        // create a topic post type when a taxonomy is created or updated
+        // create a topic taxonomy when a topic post is created or updated
+
+        // add routes
 
 	}
+
+    function create_post_type() {}
+
+    function create_taxonomy() {
+
+        $labels = array(
+            'name'                       => _x( 'Topics', 'Taxonomy General Name', 'topical' ),
+            'singular_name'              => _x( 'Topic', 'Taxonomy Singular Name', 'topical' ),
+            'menu_name'                  => __( 'Taxonomy', 'topical' ),
+            'all_items'                  => __( 'All Topics', 'topical' ),
+            'parent_item'                => __( 'Parent Topic', 'topical' ),
+            'parent_item_colon'          => __( 'Parent Topic:', 'topical' ),
+            'new_item_name'              => __( 'New Topic Name', 'topical' ),
+            'add_new_item'               => __( 'Add New Topic', 'topical' ),
+            'edit_item'                  => __( 'Edit Topic', 'topical' ),
+            'update_item'                => __( 'Update Topic', 'topical' ),
+            'separate_items_with_commas' => __( 'Separate topics with commas', 'topical' ),
+            'search_items'               => __( 'Search Topic', 'topical' ),
+            'add_or_remove_items'        => __( 'Add or remove topics', 'topical' ),
+            'choose_from_most_used'      => __( 'Choose from the most used topics', 'topical' ),
+            'not_found'                  => __( 'Not Found', 'topical' ),
+        );
+        $args = array(
+            'labels'                     => $labels,
+            'hierarchical'               => true,
+            'public'                     => true,
+            'show_ui'                    => true,
+            'show_admin_column'          => true,
+            'show_in_nav_menus'          => true,
+            'show_tagcloud'              => true,
+        );
+        register_taxonomy( 'topic', array( 'post' ), $args );
+
+    }
 
     /***
     @param string $slug
