@@ -123,7 +123,7 @@ class Topical {
         $labels = array(
             'name'                       => _x( 'Topics', 'Taxonomy General Name', 'topical' ),
             'singular_name'              => _x( 'Topic', 'Taxonomy Singular Name', 'topical' ),
-            'menu_name'                  => __( 'Taxonomy', 'topical' ),
+            'menu_name'                  => __( 'Topics', 'topical' ),
             'all_items'                  => __( 'All Topics', 'topical' ),
             'parent_item'                => __( 'Parent Topic', 'topical' ),
             'parent_item_colon'          => __( 'Parent Topic:', 'topical' ),
