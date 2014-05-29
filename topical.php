@@ -35,10 +35,16 @@ class Topical {
         add_action('init', array(&$this, 'create_taxonomy'), 10);
 
         // create a topic post type when a taxonomy is created or updated
+
         // create a topic taxonomy when a topic post is created or updated
+        add_action('save_post_topic', array(&$this, 'save_topic'), 10, 3);
 
-        // add routes
-
+        // add a metabox to topic (post) admin to edit the short title, which will
+        // match the connected taxonomy (Common Core, STEM, etc)
+        add_action('add_meta_boxes_topic', array(&$this, 'add_metaboxes'), 10);
+        
+        // add routes, right away!
+        $this->setup_routes();
 	}
 
     function create_post_type() {
@@ -66,14 +72,14 @@ class Topical {
         );
 
         $supports = array( 'title', 'editor', 'excerpt', 
-            'author', 'thumbnail', 'revisions', 'custom-fields' );
+            'author', 'thumbnail', 'revisions' );
 
         $args = array(
             'label'               => __( 'topic', 'topical' ),
             'description'         => __( 'A topic page', 'topical' ),
             'labels'              => $labels,
             'supports'            => $supports,
-            'taxonomies'          => array( 'category', 'post_tag' ),
+            //'taxonomies'          => array( 'category', 'post_tag' ),
             'hierarchical'        => false,
             'public'              => true,
             'show_ui'             => true,
@@ -90,7 +96,7 @@ class Topical {
             'capability_type'     => 'page',
         );
 
-        register_post_type( 'topic', $args );
+        $this->post_type = register_post_type( 'topic', $args );
 
     }
 
@@ -135,6 +141,14 @@ class Topical {
         register_taxonomy( 'topic', array( 'post' ), $args );
 
     }
+
+    function add_metaboxes($post) {}
+
+    function setup_routes() {}
+
+    function save_topic($post_id, $post, $update) {}
+
+    function save_taxonomy() {}
 
     /***
     @param string $slug
