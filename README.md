@@ -11,3 +11,14 @@ A topic ties together a post type and a taxonomy:
 Topical depends on the [Timber][] framework
 
  [Timber]: http://jarednova.github.io/timber/
+
+
+Workflow:
+---------
+
+Topics can be created in two ways: While writing a post, or independently.
+
+ - When writing a post, add and assign topics like any other taxonomy (specifically, like a category). Creating a topic this way creates a corresponding topic page. When you're done writing your post (before or after publishing), go into the newly created topic and add a better title, background info and other details.
+ 
+ - When creating a topic independently, simply add it the same way you'd add a post or page (under Topics). Make sure to add a Short Title, which will display in the post admin (under the hood, this becomes the topic's corresponding taxonomy).
+
