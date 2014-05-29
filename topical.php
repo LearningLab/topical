@@ -29,6 +29,7 @@ class Topical {
 
 	function __construct() {
         // create a post type
+        add_action('init', array(&$this, 'create_post_type'), 10);
 
         // create a taxonomy
         add_action('init', array(&$this, 'create_taxonomy'), 10);
@@ -40,7 +41,58 @@ class Topical {
 
 	}
 
-    function create_post_type() {}
+    function create_post_type() {
+        $labels = array(
+            'name'                => _x( 'Topics', 'Post Type General Name', 'topical' ),
+            'singular_name'       => _x( 'Topic', 'Post Type Singular Name', 'topical' ),
+            'menu_name'           => __( 'Topics', 'topical' ),
+            'parent_item_colon'   => __( 'Parent Topic:', 'topical' ),
+            'all_items'           => __( 'All Topics', 'topical' ),
+            'view_item'           => __( 'View Topic', 'topical' ),
+            'add_new_item'        => __( 'Add New Topic', 'topical' ),
+            'add_new'             => __( 'Add New', 'topical' ),
+            'edit_item'           => __( 'Edit Topic', 'topical' ),
+            'update_item'         => __( 'Update Topic', 'topical' ),
+            'search_items'        => __( 'Search Topics', 'topical' ),
+            'not_found'           => __( 'Not found', 'topical' ),
+            'not_found_in_trash'  => __( 'Not found in Trash', 'topical' ),
+        );
+
+        $rewrite = array(
+            'slug'                => 'topics',
+            'with_front'          => true,
+            'pages'               => true,
+            'feeds'               => true,
+        );
+
+        $supports = array( 'title', 'editor', 'excerpt', 
+            'author', 'thumbnail', 'revisions', 'custom-fields' );
+
+        $args = array(
+            'label'               => __( 'topic', 'topical' ),
+            'description'         => __( 'A topic page', 'topical' ),
+            'labels'              => $labels,
+            'supports'            => $supports,
+            'taxonomies'          => array( 'category', 'post_tag' ),
+            'hierarchical'        => false,
+            'public'              => true,
+            'show_ui'             => true,
+            'show_in_menu'        => true,
+            'show_in_nav_menus'   => true,
+            'show_in_admin_bar'   => true,
+            'menu_position'       => 5,
+            'menu_icon'           => '',
+            'can_export'          => true,
+            'has_archive'         => true,
+            'exclude_from_search' => false,
+            'publicly_queryable'  => true,
+            'rewrite'             => $rewrite,
+            'capability_type'     => 'page',
+        );
+
+        register_post_type( 'topic', $args );
+
+    }
 
     function create_taxonomy() {
 
@@ -61,6 +113,13 @@ class Topical {
             'choose_from_most_used'      => __( 'Choose from the most used topics', 'topical' ),
             'not_found'                  => __( 'Not Found', 'topical' ),
         );
+
+        $rewrite = array(
+            'slug'                       => 'topics',
+            'with_front'                 => true,
+            'hierarchical'               => false,
+        );
+
         $args = array(
             'labels'                     => $labels,
             'hierarchical'               => true,
@@ -68,8 +127,11 @@ class Topical {
             'show_ui'                    => true,
             'show_admin_column'          => true,
             'show_in_nav_menus'          => true,
-            'show_tagcloud'              => true,
+            'show_tagcloud'              => false, // never ever
+            'rewrite'                    => $rewrite,
+
         );
+
         register_taxonomy( 'topic', array( 'post' ), $args );
 
     }
