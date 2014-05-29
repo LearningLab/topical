@@ -25,6 +25,8 @@
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+require_once(__DIR__ . '/topics.php');
+
 class Topical {
 
 	function __construct() {
@@ -189,7 +191,7 @@ class Topical {
     Given a slug, return a Topic object that links both a post type and taxonomy
     ***/
     public static function get_topic($slug) {
-
+        return new Topic($slug);
     }
 
     /***
