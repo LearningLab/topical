@@ -42,10 +42,28 @@ class Topical {
         // add a metabox to topic (post) admin to edit the short title, which will
         // match the connected taxonomy (Common Core, STEM, etc)
         add_action('add_meta_boxes_topic', array(&$this, 'add_metaboxes'), 10);
-        
+
+        // path to the root of this plugin, because it's useful
+        $this->dir = plugin_dir_path(__FILE__);
+
+        // add view locations
+        $this->configure_views();
+
         // add routes, right away!
         $this->setup_routes();
+
 	}
+
+    function configure_views() {
+        if (is_array(Timber::$dirname)) {
+            $views = Timber::$dirname;
+        } else {
+            $views = array(Timber::$dirname);
+        }
+
+        $views[] = $this->dir . "views";
+        Timber::$dirname = $views;
+    }
 
     function create_post_type() {
         $labels = array(
@@ -142,7 +160,21 @@ class Topical {
 
     }
 
-    function add_metaboxes($post) {}
+    function add_metaboxes($post) {
+        /***
+        add_meta_box( $id, $title, $callback, $post_type, $context,
+                 $priority, $callback_args );
+        ***/
+        add_meta_box('short_title', 'Short Title', array(&$this, 'render_metabox'),
+            'topic', 'side', 'high', array());
+    }
+
+    function render_metabox($post, $metabox) {
+        // stash post in the metabox array, and use it as context
+        $metabox['post'] = $post;
+        Timber::render('topical/admin/metabox_short_title.twig', $metabox);
+
+    }
 
     function setup_routes() {}
 
