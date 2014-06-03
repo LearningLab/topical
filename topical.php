@@ -36,10 +36,17 @@ class Topical {
         // create a taxonomy
         add_action('init', array(&$this, 'create_taxonomy'), 10);
 
-        // create a topic post type when a taxonomy is created or updated
+        // create a topic post when a topic term is created
+        add_action('created_topic', array(&$this, 'created_topic', 10, 2));
+
+        // ensure a topic post type exists when a taxonomy is updated
+        add_action('edited_terms', array(&$this, 'edited_terms'), 10, 2);
+
+        // handle deleting a term
+        add_action('delete_term', array(&$this, 'delete_term'), 10, 4);
 
         // create a topic taxonomy when a topic post is created or updated
-        add_action('save_post_topic', array(&$this, 'save_topic'), 10, 3);
+        add_action('save_post_topic', array(&$this, 'save_post_topic'), 10, 3);
 
         // add a metabox to topic (post) admin to edit the short title, which will
         // match the connected taxonomy (Common Core, STEM, etc)
@@ -180,9 +187,48 @@ class Topical {
 
     function setup_routes() {}
 
-    function save_topic($post_id, $post, $update) {}
+    function save_post_topic($post_id, $post, $update) {}
 
-    function save_taxonomy() {}
+    /***
+    Runs when a term (topic) is created, ensuring there is a corresponding topic post.
+
+    The post and term should have the same slug. 
+    For backup, save the term name, slug and id to post_meta.
+
+    This only runs when a topic taxonomy is created, so we can assume
+    a taxonomy slug of 'topic'.
+    
+    @param int $term_id Term ID.
+    @param int $tt_id   Term taxonomy ID.
+    ***/
+    function created_topic($term_id, $tt_id) {
+
+    }
+
+    /***
+    Run when a term is updated, ensuring there is a corresponding topic post
+
+    @param int    $term_id  Term ID
+    @param string $taxonomy Taxonomy slug
+    ***/
+    function edited_terms($term_id, $taxonomy) {
+        if ($taxonomy == 'topic') {
+            $term = get_term($term_id, $taxonomy);            
+        }
+
+        error_log('edited_terms');
+        error_log($term_id, $taxonomy);
+    }
+
+    /***
+    @param int     $term         Term ID.
+    @param int     $tt_id        Term taxonomy ID.
+    @param string  $taxonomy     Taxonomy slug.
+    @param mixed   $deleted_term Copy of the already-deleted term
+    ***/
+    function delete_term($term, $tt_id, $taxonomy, $deleted_term) {
+
+    }
 
     /***
     @param string $slug
