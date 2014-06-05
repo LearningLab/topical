@@ -263,19 +263,11 @@ class Topical {
     function get_topic($term) {
         
         // normalize term and slug
-        if (is_object($term)) {
-            $slug = $term->slug;
-        } else {
-            $slug = $term;
-            $term = get_term_by('slug', $slug, 'topic');
-        }
-
-        // bail out if we don't have a term at this point
-        if (!$term) { return null; }
+        $term = $this->normalize_term($term);
 
         // use WP_Query 
         $args = array(
-            'name' => $slug,
+            'name' => $term->slug,
             'post_type' => 'topic',
             'posts_per_page' => 1
         );
@@ -304,19 +296,11 @@ class Topical {
     @return object WP_Post A topic post type
     */
     function create_topic($term) {
-        if (is_object($term)) {
-            $slug = $term->slug;
-        } else {
-            $slug = $term;
-            $term = get_term_by('slug', $slug, 'topic');
-        }
-
-        // bail out if we don't have a term at this point
-        if (!$term) { return null; }
+        $term = $this->normalize_term($term);
 
         // create the topic
         $args = array(
-            'post_name' => $slug,
+            'post_name' => $term->slug,
             'post_title' => $term->name,
             'post_excerpt' => $term->description,
             'post_type' => 'topic',
@@ -335,13 +319,28 @@ class Topical {
         }
     }
 
+    /*
+    Make sure we have a proper term object
+
+    @param mixed $term A slug or Term object to normalize
+    @return object|null Term object or null
+    */
     private function normalize_term($term) {
-        
+        if (is_object($term)) {
+            $slug = $term->slug;
+        } else {
+            $slug = $term;
+            $term = get_term_by('slug', $slug, 'topic');
+        }
+
+        // bail out if we don't have a term at this point
+        if (!$term) { return null; }
+        return $term;
     }
 
     /***
-    @param string $slug
-    @return Topic
+    @param array $slug Array of slugs to lookup
+    @return array Array of Topic posts
 
     Given a slug, return a Topic object that links both a post type and taxonomy
     public static function get_topic($slug) {
