@@ -43,7 +43,7 @@ class Topical {
         add_action('edited_terms', array(&$this, 'edited_terms'), 10, 2);
 
         // handle deleting a term
-        add_action('delete_term', array(&$this, 'delete_term'), 10, 4);
+        add_action('delete_topic', array(&$this, 'delete_term'), 10, 3);
 
         // create a topic taxonomy when a topic post is created or updated
         add_action('save_post_topic', array(&$this, 'save_post_topic'), 10, 3);
@@ -201,8 +201,18 @@ class Topical {
     @param int $term_id Term ID.
     @param int $tt_id   Term taxonomy ID.
     ***/
-    function created_topic($term_id, $tt_id) {
+    function created_term($term_id, $tt_id) {
+        $term = get_term($term_id, 'topic');
 
+        // check for a post with this term's slug
+        $topic = $this->get_topic($term);
+        if ($topic) {
+            // update post meta to store stuff
+
+        } else {
+            // create topic
+            $this->create_topic($term);
+        }
     }
 
     /***
@@ -213,21 +223,120 @@ class Topical {
     ***/
     function edited_terms($term_id, $taxonomy) {
         if ($taxonomy == 'topic') {
-            $term = get_term($term_id, $taxonomy);            
-        }
+            $term = get_term($term_id, $taxonomy);
 
-        error_log('edited_terms');
-        error_log($term_id, $taxonomy);
+            // check for a post with this term's slug
+            $topic = $this->get_topic($term);
+            if ($topic) {
+                // update post meta to store stuff
+
+            } else {
+                // create topic
+                $this->create_topic($term);
+            }
+        }
     }
 
     /***
     @param int     $term         Term ID.
     @param int     $tt_id        Term taxonomy ID.
-    @param string  $taxonomy     Taxonomy slug.
     @param mixed   $deleted_term Copy of the already-deleted term
     ***/
-    function delete_term($term, $tt_id, $taxonomy, $deleted_term) {
+    function delete_term($term, $tt_id, $deleted_term) {
 
+    }
+
+    /***
+    * Given a slug, get or create a new Topic post
+    * @param string $slug
+    * @return object Topic 
+    ***/
+    function get_or_create_topic($term) {
+    }
+
+    /*
+    Get a topic from a term or slug
+
+    @param mixed $term Get a Topic post matching this term
+    @return object Topic post
+    */
+    function get_topic($term) {
+        
+        // normalize term and slug
+        if (is_object($term)) {
+            $slug = $term->slug;
+        } else {
+            $slug = $term;
+            $term = get_term_by('slug', $slug, 'topic');
+        }
+
+        // bail out if we don't have a term at this point
+        if (!$term) { return null; }
+
+        // use WP_Query 
+        $args = array(
+            'name' => $slug,
+            'post_type' => 'topic',
+            'posts_per_page' => 1
+        );
+
+        // run the query
+        $topics = new WP_Query($args);
+
+        // if no posts found, return null
+        if ($topics->found_posts == 0) {
+            return null;
+        }
+
+        // if multiple posts found, return the first and log an error, for now
+        if ($topics->found_posts > 1) {
+            error_log("Multiple Topics: Found {$topics->found_posts} posts");
+        }
+
+        // return a post
+        return $topics->next_post();
+    }
+
+    /*
+    Create a topic from a term or slug
+
+    @param mixed $term Term object or slug
+    @return object WP_Post A topic post type
+    */
+    function create_topic($term) {
+        if (is_object($term)) {
+            $slug = $term->slug;
+        } else {
+            $slug = $term;
+            $term = get_term_by('slug', $slug, 'topic');
+        }
+
+        // bail out if we don't have a term at this point
+        if (!$term) { return null; }
+
+        // create the topic
+        $args = array(
+            'post_name' => $slug,
+            'post_title' => $term->name,
+            'post_excerpt' => $term->description,
+            'post_type' => 'topic',
+            'post_status' => 'publish'
+        );
+
+        // create the post, or return an error
+        $created = wp_insert_post($args, true);
+
+        if (is_wp_error($created)) {
+            // returning errors seems like a terrible convention
+            return $created;
+        } else {
+            // return the full post
+            return get_post($created);
+        }
+    }
+
+    private function normalize_term($term) {
+        
     }
 
     /***
@@ -235,10 +344,10 @@ class Topical {
     @return Topic
 
     Given a slug, return a Topic object that links both a post type and taxonomy
-    ***/
     public static function get_topic($slug) {
         return new Topic($slug);
     }
+    ***/
 
     /***
     @param array $slugs
