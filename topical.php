@@ -231,8 +231,8 @@ class Topical {
     @param mixed   $deleted_term Copy of the already-deleted term
     ***/
     function delete_term($term_id, $tt_id, $deleted_term) {
-        $term = get_term($term_id, 'topic');
-        $topic = $this->get_topic($term);
+
+        $topic = $this->get_topic($deleted_term);
 
         // if the topic is gone, we can just skip past all this
         if ($topic) {
