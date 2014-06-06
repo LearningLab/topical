@@ -203,16 +203,7 @@ class Topical {
     ***/
     function created_term($term_id, $tt_id) {
         $term = get_term($term_id, 'topic');
-
-        // check for a post with this term's slug
-        $topic = $this->get_topic($term);
-        if ($topic) {
-            // update post meta to store stuff
-
-        } else {
-            // create topic
-            $this->create_topic($term);
-        }
+        $topic = $this->get_or_create_topic($term);
     }
 
     /***
@@ -224,34 +215,62 @@ class Topical {
     function edited_terms($term_id, $taxonomy) {
         if ($taxonomy == 'topic') {
             $term = get_term($term_id, $taxonomy);
-
-            // check for a post with this term's slug
-            $topic = $this->get_topic($term);
-            if ($topic) {
-                // update post meta to store stuff
-
-            } else {
-                // create topic
-                $this->create_topic($term);
-            }
+            $topic = $this->get_or_create_topic($term);
         }
     }
 
     /***
-    @param int     $term         Term ID.
+    Hide a topic post if its corresponding term is deleted.
+    This is mostly for safety.
+
+    It only runs when a topic taxonomy is deleted, so we can
+    assume a taxonomy slug of "topic"
+
+    @param int     $term_id         Term ID.
     @param int     $tt_id        Term taxonomy ID.
     @param mixed   $deleted_term Copy of the already-deleted term
     ***/
-    function delete_term($term, $tt_id, $deleted_term) {
+    function delete_term($term_id, $tt_id, $deleted_term) {
+        $term = get_term($term_id, 'topic');
+        $topic = $this->get_topic($term);
 
+        // if the topic is gone, we can just skip past all this
+        if ($topic) {
+            $args = array(
+                'ID' => $topic->ID,
+                'post_status' => 'draft'
+            );
+
+            wp_update_post($args);
+        }
     }
 
     /***
-    * Given a slug, get or create a new Topic post
-    * @param string $slug
-    * @return object Topic 
+    Given a term, get or create a new Topic post.
+    This will also publish a topic, if it exists.
+
+    @param object $term
+    @return object Topic 
     ***/
     function get_or_create_topic($term) {
+        $term = $this->normalize_term($term);
+        if (!$term) { return null; }
+
+        // check for a post with this term's slug
+        $topic = $this->get_topic($term);
+        if ($topic) {
+            // update post meta to store stuff
+            $args = array(
+                'ID' => $topic->ID,
+                'post_status' => 'publish'
+            );
+            wp_update_post($args);
+
+        } else {
+            // create topic
+            $this->create_topic($term);
+        }
+
     }
 
     /*
@@ -264,6 +283,10 @@ class Topical {
         
         // normalize term and slug
         $term = $this->normalize_term($term);
+        if (!$term) {
+            error_log('No term. Aborting.');
+            return;
+        }
 
         // use WP_Query 
         $args = array(
@@ -282,7 +305,7 @@ class Topical {
 
         // if multiple posts found, return the first and log an error, for now
         if ($topics->found_posts > 1) {
-            error_log("Multiple Topics: Found {$topics->found_posts} posts");
+            error_log("Multiple Topics: Found {$topics->found_posts} posts with slug '{$term->slug}'");
         }
 
         // return a post
@@ -325,7 +348,7 @@ class Topical {
     @param mixed $term A slug or Term object to normalize
     @return object|null Term object or null
     */
-    private function normalize_term($term) {
+    function normalize_term($term) {
         if (is_object($term)) {
             $slug = $term->slug;
         } else {
