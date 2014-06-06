@@ -37,7 +37,7 @@ class Topical {
         add_action('init', array(&$this, 'create_taxonomy'), 10);
 
         // create a topic post when a topic term is created
-        add_action('created_topic', array(&$this, 'created_topic', 10, 2));
+        add_action('created_topic', array(&$this, 'created_term'), 10, 2);
 
         // ensure a topic post type exists when a taxonomy is updated
         add_action('edited_terms', array(&$this, 'edited_terms'), 10, 2);
