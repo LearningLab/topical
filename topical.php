@@ -176,18 +176,92 @@ class Topical {
         ***/
         add_meta_box('short_title', 'Short Title', array(&$this, 'render_metabox'),
             'topic', 'side', 'high', array());
+
+        // hide the existing post slug options, because the term slug is what counts
+        remove_meta_box('slugdiv', 'topic', 'normal'); 
     }
 
     function render_metabox($post, $metabox) {
         // stash post in the metabox array, and use it as context
         $metabox['post'] = $post;
+        $metabox['term'] = $this->get_term($post);
+
         Timber::render('topical/admin/metabox_short_title.twig', $metabox);
 
     }
 
     function setup_routes() {}
 
-    function save_post_topic($post_id, $post, $update) {}
+    /*
+    Handle saving a topic post, ensuring a term is linked
+    
+    @param int     $post_ID Post ID.
+    @param WP_Post $post    Post object.
+    @param bool    $update  Whether this is an existing post being updated or not.
+    */
+    function save_post_topic($post_id, $post, $update) {
+        // try to get a term right away
+        $term = $this->get_term($post);
+
+        // check that a short_title is set
+        if (isset($_POST['short_title'])) {
+            $short_title = trim($_POST['short_title']);
+
+            // let's say this is a new post, with no term attached
+            // so create a term from the $short_title
+            // we also need to set the post's slug so they match
+            if ($short_title && !$term) {
+                // just to make sure there isn't a term out there already
+                $slug = sanitize_title($short_title);
+                $term = get_term_by('slug', $slug, 'topic');
+
+                // set the post slug first, so everything matches
+                // unhook actions, too
+                remove_action('save_post_topic', array(&$this, 'save_post_topic'), 10, 3);
+                
+                wp_update_post(array(
+                    'ID' => $post_id,
+                    'post_name' => $slug
+                ));
+                
+                add_action('save_post_topic', array(&$this, 'save_post_topic'), 10, 3);
+
+
+                if ($term) {
+                    // ok, if we have a term now, connect it to the post by matching slugs
+
+
+                } else {
+                    // still no term, good, let's make one
+                    // remembering of course to unhook actions first
+                    remove_action('created_topic', array(&$this, 'created_term'), 10, 2);
+
+                    wp_insert_term($short_title, 'topic', 
+                        array('slug'=>$slug));
+                    
+                    add_action('created_topic', array(&$this, 'created_term'), 10, 2);
+
+                }
+
+            } elseif ($short_title && $term && $term->name !== $short_title) {
+                // we have an existing term, and we have a short_title, and they don't match
+                // so update the term, leave the slugs matching
+                remove_action('edited_terms', array(&$this, 'edited_terms'), 10, 2);
+
+                wp_update_term($term->term_id, 'topic', array(
+                    'name' => $short_title,
+                    'slug' => $slug
+                ));
+                
+                add_action('edited_terms', array(&$this, 'edited_terms'), 10, 2);
+
+            }
+            
+        }
+
+        error_log('Saved topic.');
+        error_log(print_r($term, true));
+    }
 
     /***
     Runs when a term (topic) is created, ensuring there is a corresponding topic post.
@@ -271,6 +345,23 @@ class Topical {
             $this->create_topic($term);
         }
 
+    }
+
+    /*
+    Get a term from a post or slug
+    @param string|object $post The topic post
+    @return Term a term object
+    */
+    function get_term($post) {
+        if (is_object($post)) {
+            // this will work even if it's a TimberPost
+            $slug = $post->post_name;
+        } elseif (is_string($post)) {
+            $slug = $post;
+        }
+
+        $term = get_term_by('slug', $slug, 'topic');
+        return $term;
     }
 
     /*
@@ -384,5 +475,21 @@ class Topical {
     }
 }
 
+/*
+Utility function that return the first thing in an array that evaluates to true
+Returns null if none pass.
+
+@param array $things Array of objects to test
+@return mixed First thing that passes simple truthiness
+*/
+function firstof($things) {
+    foreach ($things as $obj) {
+        if ($obj) {
+            return $obj;
+        }
+    }
+
+    return null;
+}
 
 $topical = new Topical();
