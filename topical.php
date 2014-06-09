@@ -114,7 +114,7 @@ class Topical {
             'show_in_nav_menus'   => true,
             'show_in_admin_bar'   => true,
             'menu_position'       => 5,
-            'menu_icon'           => '',
+            'menu_icon'           => null,
             'can_export'          => true,
             'has_archive'         => true,
             'exclude_from_search' => false,
@@ -123,7 +123,7 @@ class Topical {
             'capability_type'     => 'page',
         );
 
-        $this->post_type = register_post_type( 'topic', $args );
+        $this->post_type = register_post_type('topic', $args);
 
     }
 
@@ -165,7 +165,7 @@ class Topical {
 
         );
 
-        register_taxonomy( 'topic', array( 'post' ), $args );
+        register_taxonomy('topic', array('post'), $args);
 
     }
 
@@ -202,6 +202,11 @@ class Topical {
     function save_post_topic($post_id, $post, $update) {
         // try to get a term right away
         $term = $this->get_term($post);
+
+        // check if we have a term
+        if ($term) {
+            error_log("Got term: \n" . print_r($term, true));
+        }
 
         // check that a short_title is set
         if (isset($_POST['short_title'])) {
