@@ -8,9 +8,10 @@ A topic ties together a post type and a taxonomy:
  - the post type contains background information, a featured image, excerpt and other post-like features
  - the taxonomy (topic) allows us to tie regular posts (or other post types) to the topic
 
-Topical depends on the [Timber][] framework
+Topical depends on the [Timber][] framework and [Posts2Posts][p2p].
 
  [Timber]: http://jarednova.github.io/timber/
+ [p2p]: http://wordpress.org/plugins/posts-to-posts/
 
 
 Workflow:
@@ -22,3 +23,10 @@ Topics can be created in two ways: While writing a post, or independently.
  
  - When creating a topic independently, simply add it the same way you'd add a post or page (under Topics). Make sure to add a Short Title, which will display in the post admin (under the hood, this becomes the topic's corresponding taxonomy).
 
+
+P2P:
+----
+
+Topical uses Posts2Posts under the hood, to maintain connections between topics and posts. Other content types (attachments, etc) may be added later.
+
+Topics should still have both a short and long name, for readability and SEO.
