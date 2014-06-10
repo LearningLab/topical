@@ -36,6 +36,13 @@ class Topical {
         // setup posts2posts connections, now that we have topic posts
         add_action('p2p_init', array(&$this, 'create_connections'), 10);
 
+        // topic titles for editing
+        add_filter('p2p_candidate_title', array(&$this, 'topic_short_title'), 10, 3);
+        add_filter('p2p_connected_title', array(&$this, 'topic_short_title'), 10, 3);
+
+        // order topics by name in the admin
+        add_filter( 'p2p_connectable_args', array(&$this, 'topic_ordering'), 10, 3 );
+
         // add a metabox to topic (post) admin to edit the short title (Common Core, STEM, etc)
         add_action('add_meta_boxes_topic', array(&$this, 'add_metaboxes'), 10);
 
@@ -148,15 +155,11 @@ class Topical {
         ***/
         add_meta_box('short_title', 'Short Title', array(&$this, 'render_metabox'),
             'topic', 'side', 'high', array());
-
-        // hide the existing post slug options, because the term slug is what counts
-        remove_meta_box('slugdiv', 'topic', 'normal'); 
     }
 
     function render_metabox($post, $metabox) {
         // stash post in the metabox array, and use it as context
         $metabox['post'] = $post;
-        $metabox['term'] = $this->get_term($post);
 
         Timber::render('topical/admin/metabox_short_title.twig', $metabox);
 
@@ -171,7 +174,46 @@ class Topical {
     @param WP_Post $post    Post object.
     @param bool    $update  Whether this is an existing post being updated or not.
     */
-    function save_post_topic($post_id, $post, $update) {}
+    function save_post_topic($post_id, $post, $update) {
+
+        if (isset($_POST['short_title']) && trim($_POST['short_title'])) {
+            update_post_meta($post_id, 'short_title', trim($_POST['short_title']));
+        }
+    }
+
+    /*
+    Show the short title when editing a post
+
+    @param str $title This topic's title
+    @param object $post The entire post object
+    @param object $ctype The connection type from P2P
+    */
+    function topic_short_title($title, $post, $ctype) {
+        // get a short title, which may be nothing
+        $short_title = get_post_meta($post->ID, 'short_title', true);
+        
+        // return a short title if we have one
+        return $short_title ? $short_title : $title;
+    }
+
+    /*
+    Called before querying for posts that the user can connect to the current post.
+    
+    @param array $args Array of current query args
+    @param object $ctype Connection type
+    @param int $post_id ID of the post we're dealing with
+    */
+    function topic_ordering($args, $ctype, $post_id) {
+
+        // check that we're dealing with posts_to_topics and that we're querying topics
+        if ($ctype->name == 'posts_to_topics' && $ctype->get_direction() == 'to') {
+            $args['orderby'] = 'title';
+            $args['order'] = 'asc';
+        }
+
+        // return $args always, because this is a filter
+        return $args;
+    }
 
     /***
     @param array $slugs

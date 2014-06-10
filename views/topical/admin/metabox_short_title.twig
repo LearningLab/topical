@@ -1,11 +1,5 @@
 <div class="form-field form-required">
 	<label for="short_title">Short title</label>
-	<input type="text" name="short_title" value="{{ term.name }}">
-	<p>This will show up when editing posts.</p>
-</div>
-
-<div class="form-field">
-	<label for="short_slug">Slug</label>
-	<input type="text" name="short_slug" value="{{ term.slug }}" disabled>
-	<p>Optional: This will auto-fill from the short title above. Changing this changes the topic's URL.</p>
+	<input type="text" name="short_title" value="{{ post.short_title }}">
+	<p>This will show up when editing posts, and other places a shorter name is useful.</p>
 </div>
