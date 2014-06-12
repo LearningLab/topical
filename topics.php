@@ -18,31 +18,20 @@
 
 
 /**
-* Topic, a container for a post type and taxonomy, used to access both
+* Topic, an extended TimberPost for topic pages
 * 
-* @param string $slug Slug for a topic post type or taxonomy
+* @param mixed Lookup for a single topic page
 */
-class Topic {
+class Topic extends TimberPost {
     
-    function __construct($slug) {
+    function get_posts() {
 
-        // stash the slug
-        $this->slug = $slug;
-        
-        // get post
-        $this->post = get_page_by_path($slug, OBJECT, 'topic');
+        $connected = new WP_Query(array(
+            'connected_type' => 'posts_to_topics',
+            'connected_items' => $this->ID,
+            'nopaging' => true,
+        ));
 
-        // get taxonomy
-        $this->term = get_term_by('slug', $slug, 'topic', OBJECT);
-    }
-
-    public static function get_for_term($term) {
-        // again with the redundant lookup
-        return new Topic($term->slug);
-    }
-
-    public static function get_for_post($post) {
-        // this seems inefficient, optimize later
-        return new Topic($post->post_name);
+        return Timber::handle_post_results($connected->posts, 'Topic');
     }
 }

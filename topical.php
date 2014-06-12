@@ -39,9 +39,11 @@ class Topical {
         // topic titles for editing
         add_filter('p2p_candidate_title', array(&$this, 'topic_short_title'), 10, 3);
         add_filter('p2p_connected_title', array(&$this, 'topic_short_title'), 10, 3);
+        add_filter('posts_orderby', array(&$this, 'topic_orderby'), 10, 2);
 
         // order topics by name in the admin
         add_filter( 'p2p_connectable_args', array(&$this, 'topic_ordering'), 10, 3 );
+        add_filter( 'p2p_connected_args', array(&$this, 'topic_ordering'), 10, 3 );
 
         // add a metabox to topic (post) admin to edit the short title (Common Core, STEM, etc)
         add_action('add_meta_boxes_topic', array(&$this, 'add_metaboxes'), 10);
@@ -206,25 +208,40 @@ class Topical {
     function topic_ordering($args, $ctype, $post_id) {
 
         // check that we're dealing with posts_to_topics and that we're querying topics
-        if ($ctype->name == 'posts_to_topics' && $ctype->get_direction() == 'to') {
+        if ($ctype->name == 'posts_to_topics' && $ctype->get_direction() == 'from') {
             $args['orderby'] = 'title';
-            $args['order'] = 'asc';
+            $args['order'] = 'ASC';
         }
 
         // return $args always, because this is a filter
         return $args;
     }
 
-    /***
-    @param array $slugs
-    @return array|bool|null
+    /*
+    Order topics by name
 
-    Given an array of slugs, return a list of Topic objects.
-    This is a slightly optimized alternative to repeatedly calling
+    @param string   $orderby The ORDER BY clause of the query.
+    @param WP_Query &$this   The WP_Query instance (passed by reference).
+    */
+    function topic_orderby($orderby, $query) {
+        global $wpdb;
+
+        if ($query->query_vars['post_type'] == 'topic') {
+            $orderby = $wpdb->posts . '.post_title ASC';
+        }
+
+        return $orderby;
+    }
+
+    /***
+    @param array $args Arguments to supply to a WP_Query
+    @return array|null
+
+    Given an array of slugs, return a list of Topic posts.
     Topical::get_topic()
     ***/
-    public static function get_topics($slugs) {
-
+    public static function get_topics($args) {
+        
     }
 }
 
