@@ -32,6 +32,6 @@ class Topic extends TimberPost {
             'nopaging' => true,
         ));
 
-        return Timber::handle_post_results($connected->posts, 'Topic');
+        return Timber::handle_post_results($connected->posts);
     }
 }
