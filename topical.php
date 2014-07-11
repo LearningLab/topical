@@ -243,6 +243,26 @@ class Topical {
     public static function get_topics($args) {
         
     }
+
+    /***
+    Get topics for a given post:
+
+        $topics = Topical::topics_for_post(get_queried_object());
+
+    Don't use this in a loop.
+
+    @param int $post_id A post to query against
+    @return array
+    ***/
+    public static function topics_for_post($post_id) {
+        $query = new WP_Query(array(
+            'connected_type' => 'posts_to_topics',
+            'connected_items' => $post_id,
+            'nopaging' => true,
+        ));
+
+        return Timber::handle_post_results($query->posts, 'Topic');
+    }
 }
 
 /*
