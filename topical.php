@@ -39,11 +39,11 @@ class Topical {
         // topic titles for editing
         add_filter('p2p_candidate_title', array(&$this, 'topic_short_title'), 10, 3);
         add_filter('p2p_connected_title', array(&$this, 'topic_short_title'), 10, 3);
-        add_filter('posts_orderby', array(&$this, 'topic_orderby'), 10, 2);
+        //add_filter('posts_orderby', array(&$this, 'topic_orderby'), 10, 2);
 
         // order topics by name in the admin
         add_filter( 'p2p_connectable_args', array(&$this, 'topic_ordering'), 10, 3 );
-        add_filter( 'p2p_connected_args', array(&$this, 'topic_ordering'), 10, 3 );
+        //add_filter( 'p2p_connected_args', array(&$this, 'topic_ordering'), 10, 3 );
 
         // add a metabox to topic (post) admin to edit the short title (Common Core, STEM, etc)
         add_action('add_meta_boxes_topic', array(&$this, 'add_metaboxes'), 10);
