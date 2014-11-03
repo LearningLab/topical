@@ -42,7 +42,7 @@ class Topical {
         //add_filter('posts_orderby', array(&$this, 'topic_orderby'), 10, 2);
 
         // order topics by name in the admin
-        add_filter( 'p2p_connectable_args', array(&$this, 'topic_ordering'), 10, 3 );
+        //add_filter( 'p2p_connectable_args', array(&$this, 'topic_ordering'), 10, 3 );
         //add_filter( 'p2p_connected_args', array(&$this, 'topic_ordering'), 10, 3 );
 
         // add a metabox to topic (post) admin to edit the short title (Common Core, STEM, etc)
